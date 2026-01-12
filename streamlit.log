@@ -1,0 +1,23 @@
+
+  You can now view your Streamlit app in your browser.
+
+  Local URL: http://localhost:8501
+  Network URL: http://192.168.2.147:8501
+
+  For better performance, install the Watchdog module:
+
+  $ xcode-select --install
+  $ pip install watchdog
+            
+Failed to get ticker 'BTC-USD' reason: Expecting value: line 1 column 1 (char 0)
+
+1 Failed download:
+['BTC-USD']: Exception('%ticker%: No price data found, symbol may be delisted (period=5y)')
+Failed to get ticker 'BTC-USD' reason: Expecting value: line 1 column 1 (char 0)
+
+1 Failed download:
+['BTC-USD']: Exception('%ticker%: No price data found, symbol may be delisted (period=5y)')
+Failed to get ticker 'BTC-USD' reason: Expecting value: line 1 column 1 (char 0)
+
+1 Failed download:
+['BTC-USD']: Exception('%ticker%: No price data found, symbol may be delisted (period=5y)')

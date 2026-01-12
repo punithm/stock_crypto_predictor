@@ -1,0 +1,12 @@
+yfinance==0.2.32
+pandas>=2.0.0
+numpy>=1.20.0
+scikit-learn>=1.0.0
+matplotlib>=3.5.0
+tensorflow>=2.10.0
+streamlit>=1.25.0
+plotly>=5.10.0
+cryptocompare>=0.1.0
+vaderSentiment>=3.3.2
+requests>=2.28.0
+pycoingecko>=3.1.0
