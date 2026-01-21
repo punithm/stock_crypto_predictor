@@ -6,12 +6,15 @@ This script demonstrates the stock prediction system using synthetic data.
 """
 
 import sys
+import os
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
 import numpy as np
 import pandas as pd
 from datetime import datetime, timedelta
-from stock_predictor.model import LSTMModel, RandomForestModel, SimpleLinearModel
-from stock_predictor.evaluator import ModelEvaluator
-from stock_predictor.visualizer import StockVisualizer
+from stock_crypto_predictor.model import LSTMModel, RandomForestModel, SimpleLinearModel
+from stock_crypto_predictor.evaluator import ModelEvaluator
+from stock_crypto_predictor.visualizer import StockVisualizer
 
 
 def generate_synthetic_stock_data(ticker: str, num_days: int = 1260, start_price: float = 150):

@@ -17,11 +17,11 @@ os.environ['TF_FORCE_GPU_ALLOW_GROWTH'] = 'true'  # Don't allocate all GPU memor
 os.environ['CUDA_VISIBLE_DEVICES'] = ''  # Force CPU (faster for small models than GPU overhead)
 warnings.filterwarnings('ignore')
 
-from stock_predictor.data_fetcher import StockDataFetcher, generate_synthetic_stock_data
-from stock_predictor.crypto_fetcher import CryptoDataFetcher, generate_synthetic_crypto_data
-from stock_predictor.alphavantage_fetcher import AlphaVantageFetcher
-from stock_predictor.coingecko_fetcher import CoinGeckoFetcher
-from stock_predictor.evaluator import ModelEvaluator
+from stock_crypto_predictor.data_fetcher import StockDataFetcher, generate_synthetic_stock_data
+from stock_crypto_predictor.crypto_fetcher import CryptoDataFetcher, generate_synthetic_crypto_data
+from stock_crypto_predictor.alphavantage_fetcher import AlphaVantageFetcher
+from stock_crypto_predictor.coingecko_fetcher import CoinGeckoFetcher
+from stock_crypto_predictor.evaluator import ModelEvaluator
 
 # Configure page (FIRST call - must be at top)
 st.set_page_config(
@@ -35,7 +35,7 @@ st.set_page_config(
 @st.cache_resource
 def load_models():
     # Default loader kept for backward compatibility; prefer calling with model_type below.
-    from stock_predictor.model import RandomForestModel, SimpleLinearModel
+    from stock_crypto_predictor.model import RandomForestModel, SimpleLinearModel
     return RandomForestModel, SimpleLinearModel
 
 # Custom CSS
@@ -237,7 +237,7 @@ def fetch_and_prepare_data(ticker, asset_type, use_synthetic, lookback_days, dat
                 data = fetcher.fetch_data()
             if news_api_key:
                 try:
-                    from stock_predictor.news_sentiment import get_sentiment_series_for_range
+                    from stock_crypto_predictor.news_sentiment import get_sentiment_series_for_range
                     start = data.index[0].to_pydatetime()
                     end = data.index[-1].to_pydatetime()
                     print(f"Fetching sentiment for {ticker} from {start.date()} to {end.date()}...")
@@ -414,16 +414,16 @@ def main():
                 # Load models with minimal overhead - direct imports only
                 if model_type == "LSTM":
                     st.write("Loading TensorFlow/Keras... (this may take 10-20 seconds on first load)")
-                    from stock_predictor.model import LSTMModel
+                    from stock_crypto_predictor.model import LSTMModel
                     st.write("⏳ Building model architecture...")
                     model = LSTMModel(lookback_days=lookback_days, epochs=5, batch_size=16)
                 elif model_type == "Random Forest":
                     st.write("Loading Random Forest...")
-                    from stock_predictor.model import RandomForestModel
+                    from stock_crypto_predictor.model import RandomForestModel
                     model = RandomForestModel(n_estimators=50, max_depth=20)
                 else:
                     st.write("Loading Linear Regression...")
-                    from stock_predictor.model import SimpleLinearModel
+                    from stock_crypto_predictor.model import SimpleLinearModel
                     model = SimpleLinearModel()
                 
                 st.write(f"🔧 Training {model_type} with {len(X_train)} samples...")
@@ -638,7 +638,7 @@ def main():
 
             # Ensemble
             if enable_ensemble:
-                from stock_predictor.model import EnsembleModel
+                from stock_crypto_predictor.model import EnsembleModel
                 ensemble = EnsembleModel(models=models_dict)
                 weights = ensemble.fit_weights(y_test, predictions_dict)
                 st.subheader("Ensemble Weights")

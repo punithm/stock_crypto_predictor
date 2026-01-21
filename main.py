@@ -6,12 +6,15 @@ This script demonstrates how to use the stock prediction system with different m
 """
 
 import sys
+import os
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
 import argparse
 import numpy as np
-from stock_predictor.data_fetcher import StockDataFetcher
-from stock_predictor.model import LSTMModel, RandomForestModel, SimpleLinearModel
-from stock_predictor.evaluator import ModelEvaluator
-from stock_predictor.visualizer import StockVisualizer
+from stock_crypto_predictor.data_fetcher import StockDataFetcher
+from stock_crypto_predictor.model import LSTMModel, RandomForestModel, SimpleLinearModel
+from stock_crypto_predictor.evaluator import ModelEvaluator
+from stock_crypto_predictor.visualizer import StockVisualizer
 
 
 def split_data(X, y, train_split: float = 0.8):
