@@ -44,7 +44,7 @@ class AlphaVantageFetcher:
             raise ImportError("requests library not installed")
 
         import time
-        max_retries = 2
+        max_retries = 1  # Only 1 retry to fail faster
 
         for attempt in range(max_retries):
             try:
@@ -62,7 +62,7 @@ class AlphaVantageFetcher:
                     'outputsize': output_size
                 }
 
-                response = requests.get(self.base_url, params=params, timeout=30)
+                response = requests.get(self.base_url, params=params, timeout=10)  # Reduced timeout from 30s to 10s
                 response.raise_for_status()
                 data_json = response.json()
 

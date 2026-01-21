@@ -138,6 +138,14 @@ enable_ensemble = st.sidebar.checkbox(
 # Data settings
 st.sidebar.subheader("Data Settings")
 
+# Performance options
+st.sidebar.subheader("⚡ Performance")
+if st.sidebar.button("🗑️ Clear Cache", help="Clear cached data to refresh from source"):
+    st.cache_data.clear()
+    st.cache_resource.clear()
+    st.success("✅ Cache cleared! Refresh will load fresh data.")
+
+
 # Data source selection
 data_source = st.sidebar.radio(
     "Select Data Source",
@@ -145,9 +153,12 @@ data_source = st.sidebar.radio(
     help="""
     **Price Source & Delays:**
     
-    🌐 Yahoo Finance: 15-30 min delayed, USD converted to EUR
-    📊 Alpha Vantage: 15 min delayed, USD converted to EUR  
-    💰 CoinGecko: 5-10 min delayed, EUR direct (most accurate for Germany)
+    ⚡ **FASTEST →** Yahoo Finance: 15-30 min delayed, USD→EUR conversion
+    🐌 **SLOW** Alpha Vantage: 15 min delayed, API rate limits (⏳ 10-30s wait)
+    ⚡ **FAST** CoinGecko: 5-10 min delayed, EUR direct (best for crypto)
+    
+    **Recommendation:** Use Yahoo Finance or CoinGecko for faster loading.
+    Alpha Vantage can timeout - switch to synthetic data if it's slow.
     
     ⚠️ All prices are DELAYED. Never use for real trading decisions.
     Always verify on your broker before executing trades.
@@ -167,7 +178,7 @@ if "Alpha Vantage" in data_source:
 use_synthetic = st.sidebar.checkbox(
     "Use Synthetic Data",
     value=True,
-    help="Check to use demo data (no internet needed). Uncheck for live data."
+    help="✅ Check to use demo data (fast, no internet needed)\n❌ Uncheck for live data (slow, requires internet)"
 )
 
 lookback_days = st.sidebar.slider(
@@ -187,7 +198,7 @@ news_api_key = st.sidebar.text_input(
 )
 
 # Function to fetch and prepare data
-@st.cache_data(ttl=3600, show_spinner=False)
+@st.cache_data(ttl=86400, show_spinner=False)  # Cache for 24 hours instead of 1 hour
 def fetch_and_prepare_data(ticker, asset_type, use_synthetic, lookback_days, data_source, av_api_key=None, news_api_key=None):
     """Fetch data and prepare features. Returns (data, X, y, sentiment_series).
     sentiment_series is a pandas Series indexed by datetime (may be empty).
@@ -212,6 +223,7 @@ def fetch_and_prepare_data(ticker, asset_type, use_synthetic, lookback_days, dat
             if asset_type == "📊 Stock":
                 # Choose stock fetcher based on data_source
                 if "Alpha Vantage" in data_source:
+                    st.warning("⏳ **Alpha Vantage can be slow** (API rate limits). Consider using Yahoo Finance or CoinGecko instead.")
                     fetcher = AlphaVantageFetcher(ticker, api_key=av_api_key or "demo")
                 else:  # Yahoo Finance default
                     fetcher = StockDataFetcher(ticker, period="5y")
@@ -257,7 +269,13 @@ def fetch_and_prepare_data(ticker, asset_type, use_synthetic, lookback_days, dat
             error_msg = str(e)
             # Show full error for debugging, expand display length for important messages
             display_error = error_msg[:400] if len(error_msg) > 400 else error_msg
-            st.warning(f"⚠️ Could not fetch live data ({data_source}):\n{display_error}\n\nUsing synthetic data instead.")
+            
+            # Special handling for Alpha Vantage slow/timeout errors
+            if "Alpha Vantage" in data_source or "timeout" in error_msg.lower():
+                st.warning(f"⏱️ **Data source too slow or timeout** ({data_source}):\n{display_error}\n\n✅ **Switching to synthetic data for instant results.**")
+            else:
+                st.warning(f"⚠️ Could not fetch live data ({data_source}):\n{display_error}\n\nUsing synthetic data instead.")
+            
             print(f"DEBUG: Full error from {data_source}: {error_msg}")
             if asset_type == "📊 Stock":
                 data = generate_synthetic_stock_data(ticker.split('-')[0] if '-' in ticker else ticker)
@@ -279,12 +297,13 @@ def fetch_and_prepare_data(ticker, asset_type, use_synthetic, lookback_days, dat
 # Main content
 def main():
     # Fetch data (with status indicator)
-    status_placeholder = st.empty()
-    status_placeholder.info(f"📊 Loading data from {data_source}...")
+    if use_synthetic:
+        status_msg = "⚡ Loading synthetic demo data..."
+    else:
+        status_msg = f"📡 Loading live data from {data_source} (this may take 10-30 seconds)..."
     
-    data, X, y, sentiment_series = fetch_and_prepare_data(ticker, asset_type, use_synthetic, lookback_days, data_source, av_api_key, news_api_key=news_api_key)
-    
-    status_placeholder.empty()  # Clear the loading message
+    with st.spinner(status_msg):
+        data, X, y, sentiment_series = fetch_and_prepare_data(ticker, asset_type, use_synthetic, lookback_days, data_source, av_api_key, news_api_key=news_api_key)
 
     # Show sentiment UI feedback
     if sentiment_series is not None and not sentiment_series.empty:
@@ -416,7 +435,7 @@ def main():
                     st.write("Loading TensorFlow/Keras... (this may take 10-20 seconds on first load)")
                     from stock_crypto_predictor.model import LSTMModel
                     st.write("⏳ Building model architecture...")
-                    model = LSTMModel(lookback_days=lookback_days, epochs=5, batch_size=16)
+                    model = LSTMModel(lookback_days=lookback_days, epochs=3, batch_size=16)  # Reduced from 5 to 3 epochs
                 elif model_type == "Random Forest":
                     st.write("Loading Random Forest...")
                     from stock_crypto_predictor.model import RandomForestModel
